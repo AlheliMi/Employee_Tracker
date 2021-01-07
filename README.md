@@ -1,2 +1,2 @@
 # Employee_Tracker
-Avery simple employee tracker for you to organize your human resources
+A very simple employee tracker for you to organize your human resources
