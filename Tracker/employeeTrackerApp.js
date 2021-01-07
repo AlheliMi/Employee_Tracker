@@ -1,6 +1,8 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-let departmentOptions = [];
+let departments
+let roles
+let employees
 
 //CONNECTION TO THE DATABASE
 var connection = mysql.createConnection({
@@ -166,6 +168,7 @@ function viewEmployees() {
     connection.query("SELECT * FROM employees", function (err, data) {
         if (err) throw err;
         console.table(data);
+        employees = res;
         employeesInfo();
     });
 }
@@ -174,6 +177,7 @@ function viewDepartments() {
     connection.query("SELECT * FROM departments", function (err, data) {
         if (err) throw err;
         console.table(data);
+        departments = data;
         employeesInfo();
     });
 }
@@ -182,6 +186,7 @@ function viewRoles() {
     connection.query("SELECT * FROM roles", function (err, data) {
         if (err) throw err;
         console.table(data);
+        roles = res
         employeesInfo();
     });
 }
@@ -259,40 +264,28 @@ async function updateEmployeeRole() {
 }
 
 // Deleting employees, departments and roles
-let departments
-/* 
-getDepartments = () => {
-    connection.query("SELECT id, department_name FROM departments", (err, res) => {
-      if (err) throw err;
-      departments = res;
-      console.log(departments);
-    })
-  }; */
-async function deleteDepartment () {
-    connection.query("SELECT id, department_name FROM departments", (err, res) => {
-
+deleteDepartment = () => {
+    connection.query("SELECT department_name FROM departments", function (err, data) {
         if (err) throw err;
-        departments = res;
-        /* console.log(departments) */
-        
-    for (var i = 0; i < departments.length; i++) {
-      departmentOptions.push(Object(departments[i]));}
+        console.table(data);
+    console.log(data.lenght);
 
-      
-    })
-    
-    
+/*     let departmentOptions = [];
+    for (var i = 0; i < data.lenght; i++) {
+      departmentOptions.push(Object(data[i]));
+    } */
+});
+};
+
+
+    /* 
   
-    inquirer.prompt(
+    inquirer.prompt([
       {
         name: "deleteDepartment",
         type: "list",
         message: "Select a department to delete",
-        choices: departmentsOptions,
-        
-      }
-    );
-/*         function() {
+        choices: function() {
           var choiceArray = [];
           for (var i = 0; i < departmentOptions.length; i++) {
             choiceArray.push(departmentOptions[i])
@@ -304,15 +297,17 @@ async function deleteDepartment () {
       for (i = 0; i < departmentOptions.length; i++) {
         if (answer.deleteDepartment === departmentOptions[i].name) {
           newChoice = departmentOptions[i].id
-          connection.query(`DELETE FROM departments Where id = ${newChoice}`), (err, res) => {
+          connection.query(`DELETE FROM department Where id = ${newChoice}`), (err, res) => {
             if (err) throw err;
           };
           console.log("Department: " + answer.deleteDepartment + " Deleted Succesfully");
         }
-      } */
+      }
       viewDepartment();
-   /*  }) */
-  };
+    })
+  }; */
+      
+
 
 /* async function deleteEmployee() {
     const employees = await connection.query("SELECT employeed_id, first_name, last_name FROM employees")
