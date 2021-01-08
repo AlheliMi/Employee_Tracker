@@ -1,8 +1,6 @@
-var mysql = require("mysql");
-var inquirer = require("inquirer");
-let departments
-let roles
-let employees
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+const figlet = require("figlet")
 
 //CONNECTION TO THE DATABASE
 var connection = mysql.createConnection({
@@ -15,12 +13,17 @@ var connection = mysql.createConnection({
     database: "employees_db"
 });
 
+figlet("Employee Tracker APP",(err, result) =>{
+    console.log(err || result);
+});
+
 connection.connect(function(err){
     if(err) throw err;
     employeesInfo();
 });
 
 //PROMPT THE USER
+
 function employeesInfo() {
     inquirer.prompt({
         message: "Welcome to the Employee Tracker App, what would you like to do?",
@@ -168,7 +171,6 @@ function viewEmployees() {
     connection.query("SELECT * FROM employees", function (err, data) {
         if (err) throw err;
         console.table(data);
-        employees = res;
         employeesInfo();
     });
 }
@@ -177,7 +179,6 @@ function viewDepartments() {
     connection.query("SELECT * FROM departments", function (err, data) {
         if (err) throw err;
         console.table(data);
-        departments = data;
         employeesInfo();
     });
 }
@@ -186,7 +187,6 @@ function viewRoles() {
     connection.query("SELECT * FROM roles", function (err, data) {
         if (err) throw err;
         console.table(data);
-        roles = res
         employeesInfo();
     });
 }
@@ -264,110 +264,121 @@ async function updateEmployeeRole() {
 }
 
 // Deleting employees, departments and roles
-deleteDepartment = () => {
-    connection.query("SELECT department_name FROM departments", function (err, data) {
-        if (err) throw err;
-        console.table(data);
-    console.log(data.lenght);
 
-/*     let departmentOptions = [];
-    for (var i = 0; i < data.lenght; i++) {
-      departmentOptions.push(Object(data[i]));
-    } */
-});
+async function deleteDepartment(){
+    var departmentArray=[];
+    connection.query(`
+    SELECT departments.department_name AS 'Department_Name'
+    FROM departments;`
+    , function(err, result) {
+        if (err) throw err;
+
+        for(var i=0; i<result.length; i++){
+            departmentArray.push(result[i].Department_Name);
+        }
+        console.log(" ");
+        
+        inquirer
+        .prompt([
+        {
+            type: "rawlist",
+            name: "department",
+            message: "Select the Department you want to remove: ",
+            choices:departmentArray
+        }
+        ]).then(function(response){
+            connection.query(`SELECT departments.id FROM departments
+            WHERE departments.department_name=?;`
+            , [response.departments], function(err, result) {
+                if (err) throw err;
+                var departmentID=result[0].id;
+                connection.query(`DELETE FROM departments WHERE departmets.id=?;`
+                    , [departmentID], function(err, result) {
+                    if (err) throw err;
+                    console.log(" ");
+                    console.log(`Department: ${response.department} was Successfully Removed.`);
+                    viewDepartment();
+                });   
+            });   
+        })
+    });
 };
 
-
-    /* 
-  
-    inquirer.prompt([
-      {
-        name: "deleteDepartment",
-        type: "list",
-        message: "Select a department to delete",
-        choices: function() {
-          var choiceArray = [];
-          for (var i = 0; i < departmentOptions.length; i++) {
-            choiceArray.push(departmentOptions[i])
-          }
-          return choiceArray;
+ async function deleteRole(){
+    var roleArray=[];
+    connection.query(`
+    SELECT 
+    CONCAT(roles.title, ' ',roles.department_id) AS 'Role_Name'
+    FROM roles;`
+    , function(err, result) {
+        if (err) throw err;
+        for(var i=0; i<result.length; i++){
+            roleArray.push(result[i].Role_Name);
         }
-      }
-    ]).then(answer => {
-      for (i = 0; i < departmentOptions.length; i++) {
-        if (answer.deleteDepartment === departmentOptions[i].name) {
-          newChoice = departmentOptions[i].id
-          connection.query(`DELETE FROM department Where id = ${newChoice}`), (err, res) => {
-            if (err) throw err;
-          };
-          console.log("Department: " + answer.deleteDepartment + " Deleted Succesfully");
+        console.log(" aqui ESTOY");
+
+        inquirer
+        .prompt([
+        {
+            type: "rawlist",
+            name: "role",
+            message: "Select the Role you want to remove: ",
+            choices: roleArray
         }
-      }
-      viewDepartment();
-    })
-  }; */
-      
+        ]).then(function(response){
+            connection.query(`SELECT roles.id FROM roles
+            WHERE CONCAT(roles.title, ' ',roles.department_id)=?;`
+            , [response.role], function(err, result) {
+                if (err) throw err;
+                var roleID=result[0].id;
+                connection.query(`DELETE FROM roles WHERE roles.id=?;`
+                    , [roleID], function(err, result) {
+                    if (err) throw err;
+                    console.log(" ");
+                    console.log(`Role: ${response.role} was Successfully Removed.`);
+                    viewRoles();
+                });   
+            });   
+        })
+    });
+};
 
+async function deleteEmployee(){
+    var employeeArray=[];
+    connection.query(`
+    SELECT 
+    CONCAT(employees.first_name, ' ',employees.last_name) AS 'Employee_Name'
+    FROM employees;`
+    , function(err, result) {
+        if (err) throw err;
 
-/* async function deleteEmployee() {
-    const employees = await connection.query("SELECT employeed_id, first_name, last_name FROM employees")
-    const employeeChoices = employees.map(employees => ({
-        name: `${employees.first_name} ${employees.last_name}`,
-        value: employees.id
-    }))
+        for(var i=0; i<result.length; i++){
+            employeeArray.push(result[i].Employee_Name);
+        }
+        console.log(" ");
+        inquirer
+        .prompt([
+        {
+            type: "rawlist",
+            name: "employee",
+            message: "Select the employee to remove: ",
+            choices:employeeArray
+        }
+        ]).then(function(response){
+            connection.query(`SELECT employees.employee_id FROM employees
+            WHERE CONCAT(employees.first_name, ' ',employees.last_name)=?;`
+            , [response.employee], function(err, result) {
+                if (err) throw err;
+                var employeeID=result[0].id;
+                connection.query(`DELETE FROM employees WHERE employees.employee_id=?;`
+                    , [employeeID], function(err, result) {
+                    if (err) throw err;
+                    console.log(" ");
+                    console.log(`Employee: ${response.employee} was Successfully Removed.`);
+                    viewEmployees();
+                });   
+            });   
+        })
+    });
+};
 
-    const employeeId = await
-        inquirer.prompt(
-            {
-                type: "list",
-                name: "eName",
-                message: "Select the employee you want to delete:",
-                choices: employeeChoices
-            })
-
-    await connection.query("DELETE from employees where id= ?", [employeeId.eName]);
-    console.log("Employee Successfully deleted.")
-    viewEmployees();
-}
-
-async function deleteDepartment() {
-    const departments = await connection.query("SELECT * FROM departments")
-    const departmentChoices = departments.map(dept => ({
-        name: `${dept.name}`,
-        value: dept.id
-    }))
-
-    const departmentId = await
-        inquirer.prompt(
-            {
-                type: "list",
-                name: "eName",
-                message: "Select the department you want to delete:",
-                choices: departmentChoices
-            })
-
-    await connection.query("DELETE from departments where id=?", [departmentId.eName]);
-    console.log("Department Successfully deleted.")
-    viewDepartment();
-}
-
-async function deleteRole() {
-    const roles = await connection.query("SELECT * FROM roles")
-    const roleChoices = roles.map(roles => ({
-        name: `${roles.title}`,
-        value: roles.id
-    }));
-
-    const roleId = await
-        inquirer.prompt(
-            {
-                type: "list",
-                name: "eName",
-                message: "Select the role you want to delete:",
-                choices: roleChoices
-            });
-
-    await connection.query("DELETE from roles where id= ?", [roleId.eName]);
-    console.log("Role Successfully deleted.")
-    viewRoles();
-}; */

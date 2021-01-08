@@ -44,6 +44,8 @@ VALUES ("Ernesto", "Aguilar", 1, 1), ("Tadeo", "Medina", 2, 1), ("Alfonso", "Sá
 SELECT *
 FROM employees;
 
+SELECT employee_id, first_name, last_name FROM employees;
+
 SELECT employee_id, first_name, last_name, title, department, salary, manager_id
 FROM employees;
 
@@ -52,6 +54,9 @@ FROM departments;
 
 SELECT *
 FROM roles;
+
+update employees set role_id = 10 WHERE employee_id = 9;
+delete from employees where employee_id = 2;
 
 -- Query for view all --
 SELECT e.employee_id, e.first_name, e.last_name, d.department_name AS departments, r.title, r.salary, 
